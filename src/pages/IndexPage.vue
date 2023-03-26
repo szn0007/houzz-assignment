@@ -68,16 +68,20 @@
               <q-btn icon="close" flat round dense v-close-popup />
             </q-card-section>
             <q-card-section>
-              <q-input dense outlined v-model="newBeerData.name" label="Beer Name *" class="q-mb-md" />
+              <q-input ref="beerName" dense outlined v-model="newBeerData.name" label="Beer Name *" class="q-mb-md"
+              :rules="[val => !!val || 'Beer Name is required']" />
 
-              <q-input dense outlined v-model="newBeerData.tagline" label="Genre *" class="q-mb-md" />
+              <q-input ref="genre" dense outlined v-model="newBeerData.tagline" label="Genre *" class="q-mb-md"
+              :rules="[val => !!val || 'Genre is required']" />
 
               <q-input
+                ref="description"
                 v-model="newBeerData.description"
                 dense
                 outlined
                 label="Description *"
                 type="textarea"
+                :rules="[val => !!val || 'Description is required']"
               />
             </q-card-section>
             <q-card-actions align="right" class="text-primary">
@@ -154,27 +158,44 @@ export default defineComponent({
       Loading.hide()
     },
     addCustomBeer () {
-      const beers = JSON.parse(localStorage.getItem('beers')) || []
-      let id
-      if (beers.length > 0) {
-        id = beers[beers.length - 1].id + 1
+      this.$refs.beerName.validate()
+      this.$refs.genre.validate()
+      this.$refs.description.validate()
+
+      if (this.$refs.beerName.hasError || this.$refs.beerName.hasError || this.$refs.beerName.hasError) {
+        this.$q.notify({
+          message: 'Please fill the form properly.',
+          icon: 'error',
+          color: 'negative'
+        })
       } else {
-        id = 1
-      }
-      const newBeerData = {
-        id,
-        ...this.newBeerData
-      }
-      if (beers?.length > 0) {
-        beers.push(newBeerData)
-        localStorage.setItem('beers', JSON.stringify(beers))
-      } else {
-        localStorage.setItem('beers', JSON.stringify([newBeerData]))
-      }
-      this.addCustomBeerDialog = false
-      this.getCustomBeers()
-      this.newBeerData = {
-        custom: true
+        const beers = JSON.parse(localStorage.getItem('beers')) || []
+        let id
+        if (beers.length > 0) {
+          id = beers[beers.length - 1].id + 1
+        } else {
+          id = 1
+        }
+        const newBeerData = {
+          id,
+          ...this.newBeerData
+        }
+        if (beers?.length > 0) {
+          beers.push(newBeerData)
+          localStorage.setItem('beers', JSON.stringify(beers))
+        } else {
+          localStorage.setItem('beers', JSON.stringify([newBeerData]))
+        }
+        this.addCustomBeerDialog = false
+        this.getCustomBeers()
+        this.newBeerData = {
+          custom: true
+        }
+        this.$q.notify({
+          message: 'Successfully added the custome beer.',
+          icon: 'check_success',
+          color: 'primary'
+        })
       }
     },
     getCustomBeers () {
